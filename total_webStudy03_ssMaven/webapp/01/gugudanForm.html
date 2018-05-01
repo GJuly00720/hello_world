@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>01/gugudanForm.html</title>
+	</head>
+	<body>
+		<!-- 클라이언트로부터 최소단과 최대단을 입력받고, 그에 해당하는 구구단만! 제공 -->
+		<form method="get" onsubmit="alert('서밋');">
+			<input type="hidden" name="content" value="gugudan"/>
+			최소단 : <input type="number" name="minDan" /><!-- 요청파라미터 필수요소 < *파라미터타입* *파라미터이름* > -->
+			최대단 : <input type="number" name="maxDan" />
+			<input type="submit" value="구구단줘!" onclick="alert('클릭');"/><!-- 플래그를 기준으로 이벤트 발생 -->
+			<input type="button" value="그냥 버튼~" /><!-- 버튼클릭에 대한 이벤트 발생 -->
+		</form>
+	</body>
+</html>

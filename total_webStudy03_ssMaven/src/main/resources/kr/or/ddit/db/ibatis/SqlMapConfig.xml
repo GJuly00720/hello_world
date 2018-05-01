@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC 
+"-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-config-2.dtd" >
+<sqlMapConfig>
+	<properties resource="/kr/or/ddit/db/dbInfo.properties"/>
+	<settings useStatementNamespaces="true"/>
+	<typeAlias alias="memberVO" type="kr.or.ddit.vo.MemberVO"/>
+	<typeAlias alias="prodVO" type="kr.or.ddit.vo.ProdVO"/>
+	<typeAlias alias="buyerVO" type="kr.or.ddit.vo.BuyerVO"/>
+	<typeAlias alias="pagingVO" type="kr.or.ddit.vo.PagingVO"/>
+	<typeAlias alias="boardVO" type="kr.or.ddit.vo.BoardVO"/>
+	<typeAlias alias="attVO" type="kr.or.ddit.vo.AttatchVO"/>
+	<transactionManager type="JDBC">
+		<dataSource type="DBCP">
+			<property name="driverClassName" value="${driverClassName}"/>
+			<property name="url" value="${url}"/>
+			<property name="username" value="${user}"/>
+			<property name="password" value="${password}"/>
+			<property name="initialSize" value="${initialSize}"/>
+			<property name="maxWait" value="${maxWait}"/>
+			<property name="maxActive" value="${maxActive}"/>
+		</dataSource>
+	</transactionManager>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/member.xml"/>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/prod.xml"/>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/others.xml"/>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/board.xml"/>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/buyer.xml"/>
+	<sqlMap resource="kr/or/ddit/db/ibatis/mappings/attatch.xml"/>
+</sqlMapConfig>

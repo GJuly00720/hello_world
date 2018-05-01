@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Attatch">
+	<resultMap class="attVO" id="attatchList">
+		<result property="att_no" column="ATT_NO"/>
+		<result property="att_originalfilename" column="ATT_ORIGINALFILENAME"/>
+		<result property="att_savepath" column="ATT_SAVEPATH"/>
+		<result property="att_saveurl" column="ATT_SAVEURL"/>
+		<result property="att_mime" column="ATT_MIME"/>
+		<result property="att_size" column="ATT_SIZE"/>
+		<result property="att_fancysize" column="ATT_FANCYSIZE"/>
+		<result property="att_date" column="ATT_DATE"/>
+		<result property="att_downcount" column="ATT_DOWNCOUNT"/>
+	</resultMap>
+	<insert id="insertAttatct" parameterClass="attVO">
+		INSERT INTO attatch (
+		    BO_NO,    ATT_NO,    ATT_ORIGINALFILENAME,
+		    ATT_SAVEPATH,    ATT_SAVEURL,    ATT_MIME,
+		    ATT_SIZE,   ATT_FANCYSIZE,  ATT_DATE,    ATT_DOWNCOUNT
+		) VALUES (
+		   #bo_no#,    ATTATCH_SEQ.NEXTVAL,    #att_originalfilename#,
+		   #att_savepath#,    #att_saveurl#,    #att_mime#,
+		   #att_size#,   #att_fancysize#,  SYSDATE,    0
+		)
+	</insert>
+	<select id="selectAttatch" resultClass="attVO" parameterClass="int"> 
+		SELECT   BO_NO,    ATT_NO,    ATT_ORIGINALFILENAME,
+		    ATT_SAVEPATH,    ATT_SAVEURL,    ATT_MIME,
+		    ATT_SIZE,   ATT_FANCYSIZE,  ATT_DATE,    ATT_DOWNCOUNT
+		FROM ATTATCH
+		WHERE ATT_NO = #att_no#
+	</select>
+	
+	<update id="incrementDownCount" parameterClass="int">
+		UPDATE ATTATCH
+		SET
+		ATT_DOWNCOUNT = ATT_DOWNCOUNT + 1
+		WHERE ATT_NO = #att_no#
+	</update>
+	<delete id="deleteAttatch" parameterClass="int">
+		DELETE FROM ATTATCH
+		WHERE ATT_NO = #att_no#
+	</delete>
+</sqlMap>
+	

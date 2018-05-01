@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Member">
+	
+	<!-- 이리 선언되어있으면 해당 xml안에서만 사용할 수 있다. mybatis에선 이렇게 하는걸 안되게함.-->
+	<insert id="insertMember" parameterClass="memberVO"> 
+	<!-- parameterClass :: 넘어오는 파람에 대한 설명 -->
+<!-- 		<selectKey resultClass="string" keyProperty="mem_id"> -->
+<!-- 			primary key를 생성하는 쿼리. -->
+<!-- 		</selectKey> -->
+		INSERT INTO member (                                       
+	 	    MEM_ID,    MEM_PASS,    MEM_NAME,    MEM_REGNO1,    
+	 	    MEM_REGNO2,    MEM_BIR,    MEM_ZIP,    MEM_ADD1,    
+	 	    MEM_ADD2,    MEM_HOMETEL,    MEM_COMTEL,    MEM_HP, 
+	 	    MEM_MAIL,    MEM_JOB,    MEM_LIKE,    MEM_MEMORIAL, 
+	 	    MEM_MEMORIALDAY,    MEM_MILEAGE
+	 	    , 	MEM_IMG                   
+	 	) VALUES (                                                 
+	        #mem_id#,    #mem_pass#,    #mem_name#,    #mem_regno1#,    
+	 	    #mem_regno2#,    TO_DATE(#mem_bir#, 'YYYY-MM-DD'),    
+	 	    #mem_zip#,    #mem_add1#,    
+	 	    #mem_add2#,    #mem_hometel#,    #mem_comtel#,    #mem_hp#, 
+	 	    #mem_mail#,    #mem_job#,    #mem_like#,    #mem_memorial#, 
+	 	    TO_DATE(#mem_memorialday#, 'YYYY-MM-DD'),    1000   
+	 	    , #mem_img#                      
+	 	)           
+	</insert>
+	<sql id="searchFrag">
+		WHERE MEM_DELETE = 'N' 
+		<dynamic prepend="AND" open="(" close=")"><!-- 여기가 하나라도 있으면 and붇고 아님 안붙음 다이나믹하군! -->
+					<!-- 다이나믹이 갖고 있는 open,close는 앞에 맨뒤에 붙여줌 있다면! 좋은애군 -->
+			<isEqual property="searchType" compareValue="name">
+				MEM_NAME LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="add1">
+				MEM_ADD1 LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="all">
+				MEM_NAME LIKE '%'|| #searchWord# ||'%' OR
+				MEM_ADD1 LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+		</dynamic>
+	</sql>
+	<select id="selectMemberCount" resultClass="int" parameterClass="pagingVO">
+		SELECT COUNT(MEM_ID)
+		FROM MEMBER
+		<include refid="Member.searchFrag"/>
+	</select>
+	<select id="selectMemberList" resultClass="memberVO" parameterClass="pagingVO"> <!-- VALUEoBJECT와 가장유사한 녀석 -->
+													<!-- SearchType의 entry에 따라 동적변화 -->
+		SELECT B.* FROM (SELECT ROWNUM RNUM, A.* FROM 
+		(SELECT	MEM_ID, TO_CHAR(MEM_BIR,'YYYY-MM-DD') MEM_BIR, 
+				MEM_NAME, MEM_ADD1, MEM_HP, MEM_MAIL, MEM_MILEAGE,
+				MEM_BIR ALIGN_BIR
+		FROM MEMBER 
+		<include refid="Member.searchFrag"/>
+		ORDER BY ALIGN_BIR )A
+		) B
+		<![CDATA[ WHERE RNUM >= #startRow# AND RNUM <= #endRow# ]]>	
+	</select>
+		<!-- 바인딩 규칙 -->
+	<resultMap class="kr.or.ddit.vo.ProdVO" id="prodMap">
+		<result property="prod_id" column="PROD_ID"/>
+		<result property="prod_name" column="PROD_NAME"/>
+		<result property="prod_cost" column="PROD_COST"/>
+		<result property="prod_sale" column="PROD_SALE"/>
+	</resultMap>
+	<resultMap class="memberVO" id="memberMap" groupBy="mem_id"> <!-- id 중복제거 -->
+<!-- 		<result property="memId" column="MEM_ID"/> -->
+		<result property="mem_id" column="MEM_ID"/>
+		<result property="mem_pass" column="MEM_PASS"/>
+		<result property="mem_name" column="MEM_NAME"/>
+		<result property="mem_regno1" column="MEM_REGNO1"/>
+		<result property="mem_regno2" column="MEM_REGNO2"/>
+		<result property="mem_bir" column="MEM_BIR"/>
+		<result property="mem_zip" column="MEM_ZIP"/>
+		<result property="mem_add1" column="MEM_ADD1"/>
+		<result property="mem_add2" column="MEM_ADD2"/>
+		<result property="mem_hometel" column="MEM_HOMETEL"/>
+		<result property="mem_comtel" column="MEM_COMTEL"/>
+		<result property="mem_hp" column="MEM_HP"/>
+		<result property="mem_mail" column="MEM_MAIL"/>
+		<result property="mem_job" column="MEM_JOB"/>
+		<result property="mem_like" column="MEM_LIKE"/>
+		<result property="mem_memorial" column="MEM_MEMORIAL"/>
+		<result property="mem_memorialday" column="MEM_MEMORIALDAY"/>
+		<result property="mem_mileage" column="MEM_MILEAGE"/>
+		<result property="mem_delete" column="MEM_DELETE"/>
+		<result property="mem_img" column="MEM_IMG"/>
+		<result property="roles" javaType="java.util.List" 
+				select="Member.selectRoleMember" column="MEM_ID"/>
+<!-- 		<result property="prodList" javaType="java.util.List" resultMap="Member.prodMap"/>  네스티드 맵 //맵안의 맵 N : N  간접조인!!-->
+		<result property="prodList" select="Member.selectProdListByMemId"
+			column="MEM_ID" 
+		/><!-- 맵안의 셀렉트 N : 1  직접조인!-->
+	</resultMap>
+	<select id="selectProdListByMemId" parameterClass="string" resultClass="kr.or.ddit.vo.ProdVO">
+		SELECT PROD_ID, PROD_NAME, PROD_COST, PROD_SALE
+		FROM PROD INNER JOIN CART ON(PROD_ID = CART_PROD)
+		WHERE CART_MEMBER = #mem_id#
+	</select>
+	
+	<select id="selectRoleMember" resultClass="string" parameterClass="string">
+		SELECT ROLE_ID
+		FROM ROLE_MEMBER
+		WHERE MEM_ID = #mem_id#
+	</select>
+	
+	<select id="selectMember" parameterClass="string" resultMap="Member.memberMap">
+		SELECT 
+		 MEM_ID, MEM_PASS, MEM_NAME, MEM_REGNO1,                                   	
+		 MEM_REGNO2, TO_CHAR(MEM_BIR, 'YYYY-MM-DD') MEM_BIR, MEM_ZIP,  MEM_ADD1, 	
+		 MEM_ADD2, MEM_HOMETEL, MEM_COMTEL, MEM_HP,                                 
+		 MEM_MAIL, MEM_JOB, MEM_LIKE, MEM_MEMORIAL,                                 
+		 TO_CHAR(MEM_MEMORIALDAY, 'YYYY-MM-DD')MEM_MEMORIALDAY, 
+		 MEM_MILEAGE, MEM_DELETE
+		 , MEM_IMG
+		FROM MEMBER 
+		WHERE MEM_ID = #noname#		  
+	</select>
+	
+	<select id="selectMemberBak" resultMap="Member.memberMap" parameterClass="string">
+	<!-- nestyedResult를 사용했던 과거. -->
+		SELECT 
+		 MEM_ID, MEM_PASS, MEM_NAME, MEM_REGNO1,                                   	
+		 MEM_REGNO2, TO_CHAR(MEM_BIR, 'YYYY-MM-DD') MEM_BIR, MEM_ZIP,  MEM_ADD1, 	
+		 MEM_ADD2, MEM_HOMETEL, MEM_COMTEL, MEM_HP,                                 
+		 MEM_MAIL, MEM_JOB, MEM_LIKE, MEM_MEMORIAL,                                 
+		 TO_CHAR(MEM_MEMORIALDAY, 'YYYY-MM-DD')MEM_MEMORIALDAY, 
+		 MEM_MILEAGE, MEM_DELETE 
+		 , PROD_ID, PROD_NAME, PROD_COST, PROD_SALE 
+		 FROM MEMBER LEFT OUTER JOIN CART ON (MEM_ID = CART_MEMBER)
+		 			LEFT OUTER JOIN PROD ON (CART_PROD = PROD_ID)
+		 WHERE MEM_ID =  #noname#
+	</select>
+	<update id="updateMember" parameterClass="memberVO">
+		UPDATE member          
+		 SET          
+		 MEM_NAME     =     #mem_name#,            
+		 MEM_ZIP      =     #mem_zip#,             
+		 MEM_ADD1     =     #mem_add1#,            
+		 MEM_ADD2     =     #mem_add2#,            
+		 MEM_HOMETEL  =     #mem_hometel#,         
+		 MEM_COMTEL   =     #mem_comtel#,          
+		 MEM_HP       =     #mem_hp#,              
+		 MEM_MAIL     =     #mem_mail#,            
+		 MEM_JOB      =     #mem_job#,             
+		 MEM_LIKE     =     #mem_like#,            
+		 MEM_MEMORIAL =     #mem_memorial#,        
+		 MEM_MEMORIALDAY= TO_DATE(#mem_memorialday#,'YYYY-MM-DD') 
+		 <dynamic prepend=",">
+		 	<isNotNull property="mem_img" >
+				 MEM_IMG	  =		#mem_img#
+		 	</isNotNull>
+		 </dynamic>          
+		 WHERE MEM_id =  #mem_id#
+	</update>
+	<delete id="deleteMember" parameterClass="string">
+		UPDATE MEMBER
+		SET
+		MEM_DELETE = 'Y'
+		WHERE MEM_ID = #mem_id#
+	</delete>
+</sqlMap>

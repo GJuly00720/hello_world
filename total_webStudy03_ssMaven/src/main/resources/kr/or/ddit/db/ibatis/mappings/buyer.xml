@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Buyer">
+	<insert id="insertBuyer" parameterClass="buyerVO">
+		<selectKey resultClass="string" keyProperty="buyer_id">
+			SELECT #buyer_lgu#||LPAD(NVL(TO_NUMBER(SUBSTR(MAX(BUYER_ID),5)),0)+1,2,'0')
+			FROM BUYER
+			WHERE BUYER_LGU =#buyer_lgu#
+		</selectKey>
+		INSERT INTO BUYER (
+		BUYER_ID, BUYER_NAME, BUYER_LGU, BUYER_BANK,
+		BUYER_BANKNO, BUYER_BANKNAME, BUYER_ZIP, BUYER_ADD1,
+		BUYER_ADD2, BUYER_COMTEL, BUYER_FAX, BUYER_MAIL,
+		BUYER_CHARGER, BUYER_TELEXT
+		) VALUES (
+		#buyer_id#, #buyer_name#, #buyer_lgu#, #buyer_bank#,
+		#buyer_bankno#, #buyer_bankname#, #buyer_zip#, #buyer_add1#,
+		#buyer_add2#, #buyer_comtel#, #buyer_fax#, #buyer_mail#,
+		#buyer_charger#, #buyer_telext#
+		)
+	</insert>
+	<sql id="searchFrag">
+		<dynamic prepend="WHERE">
+			<isEqual property="searchType" compareValue="name">
+				BUYER_NAME LIKE '%' || #searchWord# || '%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="add1">
+				BUYER_ADD1 LIKE '%' || #searchWord# || '%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="all">
+				BUYER_NAME LIKE '%' || #searchWord# || '%' or
+				BUYER_ADD1 LIKE '%' || #searchWord# || '%'
+			</isEqual>
+		</dynamic>
+	</sql>
+
+	<select id="selectBuyerCount" resultClass="int" parameterClass="pagingVO">
+		SELECT COUNT(buyer_id)
+		FROM BUYER
+		<include refid="Buyer.searchFrag" />
+	</select>
+	<select id="selectBuyerList" resultClass="buyerVO"
+		parameterClass="pagingVO">
+		SELECT A.*
+		FROM
+		(SELECT
+		BUYER_ID, BUYER_NAME, BUYER_LGU, BUYER_BANK,
+		BUYER_ADD1, BUYER_ADD2, BUYER_COMTEL, BUYER_CHARGER
+		FROM
+		BUYER INNER JOIN LPROD ON(BUYER_LGU = LPROD_GU)
+		<include refid="Buyer.searchFrag" />
+		)A
+		<!-- <![CDATA[ -->
+		<!-- WHERE RNUM >= #startRow# AND RNUM <= #endRow# -->
+		<!-- ]]> -->
+	</select>
+	<resultMap class="prodVO" id="prodMap">
+		<result property="prod_id" column="PROD_ID" />
+		<result property="prod_name" column="PROD_NAME" />
+		<result property="prod_cost" column="PROD_COST" />
+		<result property="prod_sale" column="PROD_SALE" />
+	</resultMap>
+	<resultMap class="buyerVO" id="buyerMap" groupBy="buyer_id">
+		<result property="buyer_id" column="BUYER_ID" />
+		<result property="buyer_name" column="BUYER_NAME" />
+		<result property="buyer_lgu" column="BUYER_LGU" />
+		<result property="buyer_bank" column="BUYER_BANK" />
+		<result property="buyer_bankno" column="BUYER_BANKNO" />
+		<result property="buyer_bankname" column="BUYER_BANKNAME" />
+		<result property="buyer_zip" column="BUYER_ZIP" />
+		<result property="buyer_add1" column="BUYER_ADD1" />
+		<result property="buyer_add2" column="BUYER_ADD2" />
+		<result property="buyer_comtel" column="BUYER_COMTEL" />
+		<result property="buyer_fax" column="BUYER_FAX" />
+		<result property="buyer_mail" column="BUYER_MAIL" />
+		<result property="buyer_charger" column="BUYER_CHARGER" />
+		<result property="buyer_telext" column="BUYER_TELEXT" />
+		<result property="prodList" javaType="java.util.List"
+			resultMap="Buyer.prodMap" />
+	</resultMap>
+	<!-- <select id="selectProdListBuyerID" parameterClass="string" resultClass="prodVO"> -->
+	<!-- SELECT PROD_ID, PROD_NAME, PROD_COST, PROD_SALE -->
+	<!-- FROM PROD LEFT OUTER JOIN LPROD ON(PROD_LGU = LPROD_GU) -->
+	<!-- WHERE LPROD_GU= #buyer_lgu# -->
+	<!-- </select> -->
+
+	<select id="selectBuyer" parameterClass="string" resultClass="buyerVO">
+		SELECT
+		BUYER_ID, BUYER_NAME, BUYER_LGU, BUYER_BANK,
+		BUYER_BANKNO, BUYER_BANKNAME, BUYER_ZIP, BUYER_ADD1,
+		BUYER_ADD2, BUYER_COMTEL, BUYER_FAX, BUYER_MAIL,
+		BUYER_CHARGER, BUYER_TELEXT
+		FROM BUYER 
+		WHERE BUYER_ID = #buyer_id#
+	</select>
+	<update id="updateBuyer" parameterClass="buyerVO">
+		UPDATE BUYER
+		SET
+		BUYER_NAME = #buyer_name#,
+		BUYER_LGU = #buyer_lgu#,
+		BUYER_BANK = #buyer_bank#,
+		BUYER_BANKNO = #buyer_bankno#,
+		BUYER_BANKNAME = #buyer_bankname#,
+		BUYER_ZIP = #buyer_zip#,
+		BUYER_ADD1 = #buyer_add1#,
+		BUYER_ADD2 =
+		#buyer_add2#,
+		BUYER_COMTEL = #buyer_comtel#,
+		BUYER_FAX = #buyer_fax#,
+		BUYER_MAIL = #buyer_mail#,
+		BUYER_CHARGER = #buyer_charger#,
+		BUYER_TELEXT = #buyer_telext#
+		WHERE
+		BUYER_ID =#buyer_id#
+	</update>
+	<delete id="deleteBuyer" parameterClass="string">
+		DELETE FROM BUYER
+		WHERE BUYER_ID =#buyer_id#
+	</delete>
+</sqlMap>
