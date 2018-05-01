@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+	<!-- appender : 로그 기록매체(장소) -->
+	<!-- message : 로깅메세지 -->
+	<!-- layout : 로깅 형식 -->
+	<!-- logger : 실제 메세지를 로깅 프레임워크에 전달해주는 전달자 -->
+	<!-- loggin event level : debug &lt; info &lt; warn &lt; error &lt; fatal -->
+	<!-- 특정 로거에 이벤트 등급이 설정됐을때, -->
+	<!-- 설정된 등급 미만으로 로깅메세지가 전달됐다면, 무시됨 -->
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss} %-5level %logger{1.} - %msg%n" />
+		</Console>
+		<RollingFile name="RollingFile" fileName="d:/logs/app.log"
+			filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz"> <!-- 기간마다 -->
+			<PatternLayout>
+				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="250 MB" />
+			</Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+<!-- 		<Logger name="java.sql.Connection" level="debug" additivity="false"> -->
+<!-- 			<AppenderRef ref="Console" /> -->
+<!-- 		</Logger> -->
+<!-- 		<Logger name="java.sql.PreparedStatement" level="debug"	additivity="false"> -->
+<!-- 			<AppenderRef ref="Console" /> -->
+<!-- 		</Logger> -->
+		<Logger name="jdbc.sqltiming" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="jdbc.resultsettable" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="org.springframework" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="kr.or.ddit" level="info" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="RollingFile" />
+		</Logger>
+		<Root level="error">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>
