@@ -1,0 +1,19 @@
+<html>
+	<style type='text/css'>
+		table{ border-collapse:collapse; background-color:green; }
+		td,th{ border:1px solid black; }
+		
+	</style>
+	<body>
+	
+		<h4>요청시간 : %date</h4>
+		<table>
+			%gugudan
+		</table>
+		서비스 완료 시간 : <span id='timeArea'></span>
+		<script type='text/javascript'>
+			var today = new Date();
+			document.getElementById('timeArea').innerHTML=today;
+		</script>
+	</body>
+</html>

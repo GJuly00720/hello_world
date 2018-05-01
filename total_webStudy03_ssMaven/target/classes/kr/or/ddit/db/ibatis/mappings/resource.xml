@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC 
+"-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Resource">
+
+	<resultMap class="resVO" id="resMap" groupBy="res_id">
+		<result property="res_id" column="RES_ID"/>
+		<result property="res_url" column="RES_URL"/>
+		<result property="res_note" column="RES_NOTE"/>
+		<result property="authorities" javaType="java.util.List"
+				select="Resource.selectRoleRes" column="RES_ID"	/>
+	</resultMap>
+	<select id="selectRoleRes" resultClass="string" parameterClass="string">
+		SELECT ROLE_ID
+		FROM ROLE_RES
+		WHERE RES_ID = #res_id#
+	</select>
+	<select id="selectResources" resultMap="Resource.resMap">
+		SELECT RES_ID, RES_URL, RES_NOTE
+		FROM RESOURCES
+	</select>
+</sqlMap>
