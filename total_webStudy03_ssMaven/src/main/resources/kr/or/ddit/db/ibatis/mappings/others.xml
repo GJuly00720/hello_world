@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC 
+"-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Others">
+	<select id="selectLprodList" resultClass="hashmap" >
+		SELECT LPROD_GU "lprod_gu", LPROD_NM "lprod_nm" 
+		FROM LPROD
+	</select>
+	<select id="selectBuyerList" resultClass="buyerVO" parameterClass="string">
+					<!-- resultClass는 레코드 하나를 대상을 지정된다. 그래서 List가 아니다. -->
+		SELECT BUYER_ID, BUYER_NAME, BUYER_LGU
+		FROM BUYER
+		<dynamic prepend="WHERE">
+			<isParameterPresent> <!-- 파라미터가 존재하면 -->
+				BUYER_LGU = #noname# <!-- 인라인파람의 이름의 의미 없음. -->
+			</isParameterPresent>
+		</dynamic>
+	</select>
+</sqlMap>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib version="2.1" xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-jsptaglibrary_2_1.xsd ">
+	<tlib-version>1.0</tlib-version>
+	<short-name>myfn</short-name> <!-- prefix -->
+	<uri>www.ddit.or.kr/myfn</uri> 
+<!-- 	String[] zoneIds = TimeZone.getAvailableIDs(); <-want this method -->
+	<function> <!-- real code -->
+		<name>getTimezoneIds</name> <!-- methodName -->
+		<function-class>java.util.TimeZone</function-class>
+		<function-signature> <!-- return methodName(argumentType) this -->
+			java.lang.String[] getAvailableIDs();
+		</function-signature>
+		<example>
+			${myfn:getTimezoneIds()}
+		</example>
+	</function>
+<!-- 	Locale[] locales = Locale.getAvailableLocales(); -->
+	<function>
+		<name>getLocales</name>
+		<function-class>java.util.Locale</function-class>
+		<function-signature>
+			java.util.Locale[] getAvailableLocales();
+		</function-signature>
+	</function>
+<!-- 	TimeZone.getTimeZone(tmpTimeZone) -->	
+	<function>
+		<name>getTimeZone</name>
+		<function-class>java.util.TimeZone</function-class>
+		<function-signature>
+			java.util.TimeZone getTimeZone(java.lang.String); <!-- String timeZoneId -->
+		</function-signature>
+	</function>
+	
+</taglib>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Board">
+	<sql id="searchFrag">
+		<dynamic prepend="WHERE" open="(" close=")">
+			<isEqual property="searchType" compareValue="writer">
+				BO_WRITER LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="title">
+				BO_TITLE LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="content">
+				BO_CONTENT LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+			<isEqual property="searchType" compareValue="all">
+				BO_CONTENT LIKE '%'|| #searchWord# ||'%' or
+				BO_WRITER LIKE '%'|| #searchWord# ||'%' or
+				BO_TITLE LIKE '%'|| #searchWord# ||'%'
+			</isEqual>
+		</dynamic>
+<!-- 		<dynamic prepend="WHERE"> -->
+<!-- 			<isNotEmpty property="searchVO"> -->
+<!-- 				<isNotEmpty property="searchVO.bo_title"> -->
+<!-- 					BO_TITLE LIKE '%'|| #searchWord# ||'%' -->
+<!-- 				</isNotEmpty> -->
+<!-- 				<isNotEmpty property="searchVO.bo_writer"> -->
+<!-- 					BO_WRITER LIKE '%'|| #searchWord# ||'%' -->
+<!-- 				</isNotEmpty> -->
+<!-- 				<isNotEmpty property="searchVO.bo_content"> -->
+<!-- 					BO_CONTENT LIKE '%'|| #searchWord# ||'%' -->
+<!-- 				</isNotEmpty> -->
+				
+<!-- 			</isNotEmpty> -->
+<!-- 		</dynamic> -->
+	</sql>
+
+	<select id="selectBoardCount" resultClass="int" parameterClass="pagingVO" >
+		<!-- paging처리 -->
+		SELECT COUNT(BO_NO)
+		FROM BOARD
+		<include refid="Board.searchFrag"/>
+	</select>
+	
+	<select id="selectBoardList" resultClass="boardVO" parameterClass="pagingVO" >
+		SELECT B.* FROM (SELECT ROWNUM RNUM, A.* FROM
+		(SELECT TO_NUMBER(BO_NO) BO_NO,	BO_TITLE,	BO_WRITER,
+			TO_CHAR(BO_DATE, 'YYYY-MM-DD') BO_DATE,	TO_NUMBER(BO_HIT) BO_HIT
+		FROM BOARD	
+		<include refid="Board.searchFrag"/> <!-- 검색후 페이징해야하니까 검색조건인 요녀석은 여기에. -->
+		ORDER BY BO_NO DESC)A  <!-- 페이징처리를 위한 RNUM은 제대로 정렬되어야 하니까 안쪽에서 먼저 정렬함. -->
+		)B <!-- RUNM을 사용하기위해 한번더 묶었지.↓ -->
+		<![CDATA[ WHERE RNUM >= #startRow# AND RNUM <= #endRow# ]]>	
+	</select>
+	
+	<resultMap class="boardVO" id="boardMap" groupBy="bo_no">
+		<result property="bo_no" column="BO_ANO"/>
+		<result property="bo_title" column="BO_TITLE"/>
+		<result property="bo_writer" column="BO_WRITER"/>
+		<result property="bo_pass" column="BO_PASS"/>
+		<result property="bo_mail" column="BO_MAIL"/>
+		<result property="bo_ip" column="BO_IP"/>
+		<result property="bo_content" column="BO_CONTENT"/>
+		<result property="bo_date" column="BO_DATE"/>
+		<result property="bo_hit" column="BO_HIT"/>
+		<result property="bo_like" column="BO_LIKE"/>
+		<result property="bo_hate" column="BO_HATE"/>
+		<result property="attatchList"	resultMap="Attatch.attatchList" />
+<!-- 			select="Board.selectAttatchList" column="bo_no"-->
+	</resultMap>
+	<!-- select id="selectAttatchList" parameterClass="boardVO" resultClass="attVO">
+		SELECT bo_no, att_no, att_originalfilename
+		FROM ATTATCH
+		WHERE BO_NO = #bo_no# 
+	</select> -->
+	<select id="selectBoard" parameterClass="int" resultMap="Board.boardMap">
+		SELECT 
+			A.BO_NO BO_ANO, BO_TITLE, BO_WRITER, BO_MAIL, BO_PASS,
+			BO_IP, BO_CONTENT, TO_CHAR(BO_DATE, 'YYYY-MM-DD') BO_DATE, 
+			BO_HIT, TO_NUMBER(BO_LIKE) BO_LIKE,	BO_HATE
+			,
+			  ATT_NO,    ATT_ORIGINALFILENAME,
+		    ATT_SAVEPATH,    ATT_SAVEURL,    ATT_MIME,
+		    ATT_SIZE,    ATT_DATE,    ATT_DOWNCOUNT, ATT_FANCYSIZE
+		FROM BOARD A LEFT OUTER JOIN ATTATCH B ON (A.BO_NO = B.BO_NO)
+		WHERE A.BO_NO = #bo_no#
+	</select>
+	<update id="incrementHit" parameterClass="int">
+		UPDATE BOARD
+		SET
+		BO_HIT = BO_HIT+1
+		WHERE BO_NO = #bo_no#
+	</update>	
+	<update id="incrementLike" parameterClass="int">
+		UPDATE BOARD
+		SET
+		BO_LIKE = BO_LIKE+1
+		WHERE BO_NO = #bo_no#
+	</update>	
+	<update id="incrementHate" parameterClass="int">
+		UPDATE BOARD
+		SET
+		BO_HATE = BO_HATE+1
+		WHERE BO_NO = #bo_no#
+	</update>	
+	<insert id="insertBoard" parameterClass="boardVO">
+		<selectKey keyProperty="bo_no" resultClass="int">
+			SELECT BOARD_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO BOARD (
+		    BO_NO,	BO_TITLE,   BO_WRITER,    BO_PASS,
+		    BO_MAIL,    BO_IP,    BO_CONTENT, BO_DATE
+		   ) VALUES (
+		    #bo_no#,	#bo_title#,   #bo_writer#,    #bo_pass#,
+		    #bo_mail#,    #bo_ip#,    #bo_content#,  SYSDATE
+		)
+	</insert>
+	<update id="updateBoard" parameterClass="boardVO">
+		UPDATE BOARD
+		SET
+		    BO_TITLE =	#bo_title#,
+		    BO_WRITER =	#bo_writer#,
+		    BO_MAIL =	#bo_mail#,
+		    BO_CONTENT =	#bo_content#
+		WHERE
+		    BO_NO =	#bo_no#
+	</update>
+	<delete id="deleteBoard" parameterClass="int">
+		DELETE FROM BOARD
+		WHERE BO_NO = #bo_no#
+	</delete>
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

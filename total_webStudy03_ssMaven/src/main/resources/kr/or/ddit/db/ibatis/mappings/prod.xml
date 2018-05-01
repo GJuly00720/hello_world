@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Prod">
+	<resultMap class="buyerVO" id="buyerMap">
+		<result property="buyer_name" column="BUYER_NAME" />
+		<result property="buyer_add1" column="BUYER_ADD1" />
+		<result property="buyer_charger" column="BUYER_CHARGER" />
+	</resultMap>
+	<resultMap class="prodVO" id="prodListMap">
+		<result property="prod_id" column="PROD_ID" />
+		<result property="prod_name" column="PROD_NAME" />
+		<result property="prod_cost" column="PROD_COST" />
+		<result property="prod_sale" column="PROD_SALE" />
+		<result property="prod_mileage" column="PROD_MILEAGE" />
+		<result property="lprod_nm" column="LPROD_NM" />
+
+		<result property="buyer" resultMap="Prod.buyerMap" />
+	</resultMap>
+	
+	<sql id="searchFrag"> <!-- 프레그먼트(조각!) 처리해줌.  쿼리의 조각을 넣어준다. -->
+	<dynamic prepend=" WHERE "> 
+			<isNotNull property="searchVO">
+				<isNotEmpty property="searchVO.prod_lgu" prepend=" AND ">
+					PROD_LGU = #searchVO.prod_lgu#	
+				</isNotEmpty>
+				<isNotEmpty property="searchVO.prod_buyer" prepend=" AND ">
+					PROD_BUYER = #searchVO.prod_buyer#	
+				</isNotEmpty>
+				<isNotEmpty property="searchVO.prod_name" prepend=" AND ">
+					PROD_NAME LIKE '%'||#searchVO.prod_name#||'%'	
+				</isNotEmpty>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<!-- TotalRecord 가져와벌이기!!! -->
+	<select id="selectProdCount" resultClass="int" parameterClass="pagingVO"> <!-- 프레그먼트... -->
+		SELECT COUNT(prod_id)
+		FROM PROD
+		<include refid="searchFrag"/> <!-- 이렇게 아이디를 넣어주면 이런 프레그먼트를 여기넣어주겠다는 의미. -->
+			
+	</select>
+	<select id="selectProdList" resultClass="prodVO" parameterClass="pagingVO"><!-- resultClass="Prod.prodListMap" 
+			를 주지않아도 밑에 strictTypeAlias를 줘서 사용가능하다. 결과는 같고 map형식이 잘나온다. -->
+		<!-- PROD/BUYER/LPROD 세 테이블을 조인하되, -->
+		<!-- mandatory/optional 관계여부 확인하고, join의 종류를 결정할 것. mandatory관계일 경우 양쪽에 
+			데이터가 모두 있기때문에 INNER JOIN을 사용해도 괜찮다. optional일 경우 한쪽의 데이터가 없을수 도 있기 때문에 INNER 
+			JOIN 사용불가. -->
+		SELECT A.*
+		FROM
+		(
+			SELECT PROD_ID, PROD_NAME, PROD_COST, PROD_SALE, PROD_MILEAGE,
+				LPROD_NM, PROD_LGU, PROD_BUYER,
+				BUYER_NAME "buyer.buyer_name",
+				BUYER_ADD1 "buyer.buyer_add1",
+				BUYER_CHARGER "buyer.buyer_charger" <!-- strict type alias... -->
+				, ROWNUM RNUM
+			FROM PROD INNER JOIN LPROD ON (PROD_LGU = LPROD_GU)
+				INNER JOIN BUYER ON (PROD_BUYER = BUYER_ID)
+			
+			<include refid="searchFrag"/>	
+			<!-- 검색을 한후! 페이징을 해야하기때문에 검색에대한 where절은 안쪽구문에 붙어야한다. -->
+<!-- 			<dynamic prepend=" WHERE "> 있을수도 없을수도 있는 키워드에대한 다이나믹한 판단!! 
+					해당 코드는 ↑ 위에서 프레그먼트 처리해줌!!!!!--> 
+<!-- 				<isNotNull property="searchVO"> -->
+<!-- 					<isNotEmpty property="searchVO.prod_lgu" prepend=" AND ">prepend = 조건만족시 해당 연산추가해줌!!!. OPEN으로 넣는건 무조건!이니까 하드코딩과 같음. 안좋음.ㄴㄴ임. -->
+<!-- 						PROD_LGU = #searchVO.prod_lgu#	 -->
+<!-- 					</isNotEmpty> -->
+<!-- 					<isNotEmpty property="searchVO.prod_buyer" prepend=" AND "> -->
+<!-- 						PROD_BUYER = #searchVO.prod_buyer#	 -->
+<!-- 					</isNotEmpty> -->
+<!-- 					<isNotEmpty property="searchVO.prod_name" prepend=" AND "> -->
+<!-- 						PROD_NAME LIKE '%'||#searchVO.prod_name#||'%'	 -->
+<!-- 					</isNotEmpty> -->
+<!-- 				</isNotNull> -->
+<!-- 			</dynamic> -->
+<!-- 			WHERE PROD_LGU = #searchVO.prod_lgu# 검색키워드는 pagingVO로 같이넘어왔지. -->
+<!-- 					PROD_BUYER = #searchVO.prod_buyer# -->
+<!-- 					PROD_NAME LIKE '%'|| #searchVO.prod_name# ||'%'	 -->
+			
+		)A
+		<![CDATA[
+		WHERE RNUM >= #startRow# AND RNUM <= #endRow#
+		]]> 
+	</select>
+
+
+	<resultMap class="buyerVO" id="buyerDetailMap" extends="Prod.buyerMap">
+		<!-- extends. 맵과 맵사이의 상속관계 형성. -->
+		<result property="buyer_id" column="BUYER_ID" />
+		<!-- <result property="buyer_name" column="BUYER_NAME"/> -->
+		<result property="buyer_lgu" column="BUYER_LGU" />
+		<result property="buyer_bank" column="BUYER_BANK" />
+		<result property="buyer_bankno" column="BUYER_BANKNO" />
+		<result property="buyer_bankname" column="BUYER_BANKNAME" />
+		<result property="buyer_zip" column="BUYER_ZIP" />
+		<!-- <result property="buyer_add1" column="BUYER_ADD1"/> -->
+		<result property="buyer_add2" column="BUYER_ADD2" />
+		<result property="buyer_comtel" column="BUYER_COMTEL" />
+		<result property="buyer_fax" column="BUYER_FAX" />
+		<result property="buyer_mail" column="BUYER_MAIL" />
+		<!-- <result property="buyer_charger" column="BUYER_CHARGER"/> -->
+		<result property="buyer_telext" column="BUYER_TELEXT" />
+	</resultMap>
+
+	<resultMap class="prodVO" id="prodDetailMap">
+		<result property="prod_id" column="PROD_ID" />
+		<result property="prod_name" column="PROD_NAME" />
+		<result property="prod_lgu" column="PROD_LGU" />
+		<result property="prod_buyer" column="PROD_BUYER" />
+		<result property="prod_cost" column="PROD_COST" />
+		<result property="prod_price" column="PROD_PRICE" />
+		<result property="prod_sale" column="PROD_SALE" />
+		<result property="prod_outline" column="PROD_OUTLINE" />
+		<result property="prod_detail" column="PROD_DETAIL" />
+		<result property="prod_img" column="PROD_IMG" />
+		<result property="prod_totalstock" column="PROD_TOTALSTOCK" />
+		<result property="prod_insdate" column="PROD_INSDATE" />
+		<result property="prod_properstock" column="PROD_PROPERSTOCK" />
+		<result property="prod_size" column="PROD_SIZE" />
+		<result property="prod_color" column="PROD_COLOR" />
+		<result property="prod_delivery" column="PROD_DELIVERY" />
+		<result property="prod_unit" column="PROD_UNIT" />
+		<result property="prod_qtyin" column="PROD_QTYIN" />
+		<result property="prod_qtysale" column="PROD_QTYSALE" />
+		<result property="prod_mileage" column="PROD_MILEAGE" />
+		<result property="lprod_nm" column="LPROD_NM" />
+		
+		<result property="buyer" resultMap="Prod.buyerDetailMap" />
+	</resultMap>
+	<select id="selectProd" resultMap="Prod.prodDetailMap"
+		parameterClass="string">
+		<!-- 상품 상세조회시 해당 거래처에 대한 모든 정보를 조회하라 -->
+		SELECT
+		PROD_ID, PROD_NAME, PROD_LGU, PROD_BUYER,
+		PROD_COST, PROD_PRICE, PROD_SALE, PROD_OUTLINE,
+		PROD_DETAIL, PROD_IMG, PROD_TOTALSTOCK, 
+		TO_CHAR(PROD_INSDATE, 'YYYY-MM-DD') PROD_INSDATE,<!-- ALIAS달아줘야함. 캐스팅과정에 이름 잃어벌임! -->
+		PROD_PROPERSTOCK, PROD_SIZE, PROD_COLOR, PROD_DELIVERY,
+		PROD_UNIT, PROD_QTYIN, PROD_QTYSALE, PROD_MILEAGE,
+		BUYER.* , LPROD_NM
+		FROM PROD INNER JOIN BUYER ON (PROD_BUYER =	BUYER_ID)
+					INNER JOIN LPROD ON (PROD_LGU = LPROD_GU)
+		WHERE PROD_ID = #noname#
+	</select>
+
+	<insert id="insertProd" parameterClass="prodVO"><!-- insert를 update로 치느냐 안치느냐는 selectkey쿼리가 없냐 있냐로  -->
+		<selectKey resultClass="string" keyProperty="prod_id"> 
+		
+		<!-- pk생성// 여기실행하고 돌아온 문자열로 실행하면 pk만들어져서 입력된다. -->
+		<!-- 결과값 string(resultClass)타입의 prod_id라는 이름의 변수(keyProperty)를
+		 					parameterClass인 prodVO의 prod_id 변수로 대입된다.-->
+			SELECT #prod_lgu#||LPAD(NVL(TO_NUMBER(SUBSTR(MAX(PROD_ID), 5)), 0)+ 1, 6, '0')
+			FROM PROD
+			WHERE PROD_LGU = #prod_lgu#
+		</selectKey>
+		INSERT INTO PROD
+		(
+			PROD_ID, PROD_NAME, PROD_LGU, PROD_BUYER,
+			PROD_COST, PROD_PRICE, PROD_SALE, PROD_OUTLINE,
+			PROD_DETAIL, PROD_IMG, PROD_TOTALSTOCK, PROD_INSDATE,
+			PROD_PROPERSTOCK, PROD_SIZE, PROD_COLOR, PROD_DELIVERY,
+			PROD_UNIT, PROD_QTYIN, PROD_QTYSALE, PROD_MILEAGE
+		) 
+		VALUES 
+		(
+			#prod_id#, #prod_name#, #prod_lgu#, #prod_buyer#,
+			#prod_cost#, #prod_price#, #prod_sale#, #prod_outline#,
+			#prod_detail#, #prod_img#, #prod_totalstock#, TO_DATE(#prod_insdate#, 'YYYY-MM-DD'),
+			#prod_properstock#, #prod_size#, #prod_color#, #prod_delivery#,
+			#prod_unit#, #prod_qtyin#, #prod_qtysale#, #prod_mileage#
+		)
+	</insert>
+	<update id="updateProd" parameterClass="prodVO">
+		UPDATE PROD
+	    SET
+<!-- 	    정책구조에 따라 어플의 구조가 만들어짐 -요구분석!!		↓ 이렇게 나누고 고르는 이유는 정책에 맞지않는 수정을 막기 위해 -->
+	        PROD_NAME = #prod_name#,
+<!-- 		    PROD_BUYER =#prod_buyer#,  어플리케이션 구조에 따라 다름. 우리 어플구조에선 변경 불가 맞음-->
+		    PROD_COST = #prod_cost#, <!-- 사실 구매 히스토리로 따로 빼는 것이 좋다.-->
+		    PROD_PRICE = #prod_price#,
+		    PROD_SALE = #prod_sale#,
+		    PROD_OUTLINE = #prod_outline#,
+		    PROD_DETAIL = #prod_detail#,
+		    PROD_IMG =#prod_img#,
+		    PROD_TOTALSTOCK =#prod_totalstock#,
+		    PROD_INSDATE =TO_DATE(#prod_insdate#, 'YYYY-MM-DD'),
+		    PROD_PROPERSTOCK =#prod_properstock#,
+		    PROD_DELIVERY =#prod_delivery#,
+		    PROD_QTYIN =#prod_qtyin#,
+		    PROD_QTYSALE =#prod_qtysale#,
+		    PROD_MILEAGE =#prod_mileage#
+		WHERE
+		    PROD_ID =#prod_id#
+		   
+	</update>
+</sqlMap>
